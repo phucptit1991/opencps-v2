@@ -11,11 +11,8 @@ import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.search.BaseIndexer;
-import com.liferay.portal.kernel.search.Document;
-import com.liferay.portal.kernel.search.Field;
-import com.liferay.portal.kernel.search.IndexWriterHelperUtil;
-import com.liferay.portal.kernel.search.Summary;
+import com.liferay.portal.kernel.search.*;
+import com.liferay.portal.kernel.search.generic.WildcardQueryImpl;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.Validator;
 
@@ -27,6 +24,7 @@ import java.util.Locale;
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletResponse;
 
+import org.opencps.auth.utils.APIDateTimeUtils;
 import org.opencps.dossiermgt.action.util.ConstantUtils;
 import org.opencps.dossiermgt.action.util.SpecialCharacterUtils;
 import org.opencps.dossiermgt.constants.DeliverableTerm;
@@ -81,6 +79,8 @@ public class DeliverableIndexer extends BaseIndexer<Deliverable> {
 			document.addTextSortable(DeliverableTerm.DELIVERABLE_CODE_SEARCH, StringPool.BLANK);
 		}
 		if (Validator.isNotNull(object.getIssueDate())) {
+			document.addTextSortable(DeliverableTerm.ISSUE_DATE_SEARCH , SpecialCharacterUtils.splitSpecial(APIDateTimeUtils
+					.convertDateToString(object.getIssueDate(), APIDateTimeUtils._NORMAL_DATE)));
 			document.addNumberSortable(DeliverableTerm.ISSUE_DATE, object.getIssueDate().getTime());
 		} else {
 			document.addNumberSortable(DeliverableTerm.ISSUE_DATE, 0);
@@ -100,6 +100,7 @@ public class DeliverableIndexer extends BaseIndexer<Deliverable> {
 		document.addTextSortable(DeliverableTerm.DELIVERABLE_NAME, object.getDeliverableName());
 		document.addTextSortable(DeliverableTerm.DELIVERABLE_TYPE, object.getDeliverableType());
 		document.addTextSortable(DeliverableTerm.GOV_AGENCY_CODE, object.getGovAgencyCode());
+		document.addTextSortable(DeliverableTerm.GOV_AGENCY_CODE + StringPool.UNDERLINE + ConstantUtils.DATA, object.getGovAgencyCode());
 		document.addTextSortable(DeliverableTerm.GOV_AGENCY_NAME, object.getGovAgencyName());
 		document.addTextSortable(DeliverableTerm.APPLICANT_ID_NO, object.getApplicantIdNo());
 		document.addTextSortable(DeliverableTerm.APPLICANT_NAME, object.getApplicantName());
@@ -146,6 +147,16 @@ public class DeliverableIndexer extends BaseIndexer<Deliverable> {
 			while (keys.hasNext()) {
 				String key = keys.next();
 				String indexKey = key + StringPool.UNDERLINE + ConstantUtils.DATA;
+				if(jsonObject.getString(key).contains(StringPool.FORWARD_SLASH)) {
+					if (key.equals(DeliverableTerm.NGAY_SINH)) {
+						document.addTextSortable(DeliverableTerm.NGAYSINH_SEARCH, SpecialCharacterUtils.splitSpecial(jsonObject.getString(key)));
+					}
+					if (key.equals(DeliverableTerm.NGAY_QD)) {
+						document.addTextSortable(DeliverableTerm.NGAY_QD_SEARCH, SpecialCharacterUtils.splitSpecial(jsonObject.getString(key)));
+					}
+				}else if(jsonObject.getString(key).contains(StringPool.SPACE)){
+					document.addTextSortable(indexKey, SpecialCharacterUtils.splitSpecial(jsonObject.getString(key)));
+				}
 				if (indexKey.indexOf("_id") != 0) {
 					document.addTextSortable(indexKey, jsonObject.getString(key));
 				}
