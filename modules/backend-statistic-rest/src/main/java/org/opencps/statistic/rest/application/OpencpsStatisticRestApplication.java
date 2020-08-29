@@ -1082,13 +1082,13 @@ public class OpencpsStatisticRestApplication extends Application {
 				}						
 			}
 		}
-		ServiceDomainResponse serviceDomainResponse = null;
-		if (OpenCPSConfigUtil.isStatisticMultipleServerEnable()) {
-			serviceDomainResponse = callServiceDomainService.callRestService(sdPayload);
-		}
-		else {
-			serviceDomainResponse = StatisticDataUtil.getLocalServiceDomain(sdPayload);
-		}
+//		ServiceDomainResponse serviceDomainResponse = null;
+//		if (OpenCPSConfigUtil.isStatisticMultipleServerEnable()) {
+//			serviceDomainResponse = callServiceDomainService.callRestService(sdPayload);
+//		}
+//		else {
+//			serviceDomainResponse = StatisticDataUtil.getLocalServiceDomain(sdPayload);
+//		}
 		// Get dossier to groupId
 		GetDossierRequest payload = new GetDossierRequest();
 		payload.setGroupId(groupId);
@@ -1656,8 +1656,8 @@ public class OpencpsStatisticRestApplication extends Application {
 			long companyId = company.getCompanyId(); 
 			JSONObject jsonData = actions.getDossiers(-1, companyId, groupId, params, sorts, query.getStart(), query.getEnd(), new ServiceContext());
 			List<Document> datas = (List<Document>) jsonData.get(ConstantUtils.DATA);
-			List<GetDossierData> dossierData = new ArrayList<>();
-			int total = jsonData.getInt(ConstantUtils.TOTAL);
+//			List<GetDossierData> dossierData = new ArrayList<>();
+//			int total = jsonData.getInt(ConstantUtils.TOTAL);
 			Map<String, Map<String, List<Document>>> mapResults = new HashMap<String, Map<String,List<Document>>>();
 			Map<String, String> domains = new HashMap<String, String>();
 			Map<String, String> services = new HashMap<String, String>();
@@ -1853,8 +1853,8 @@ public class OpencpsStatisticRestApplication extends Application {
 			
 			JSONObject jsonData = actions.getDossiers(-1, companyId, groupId, params, sorts, startOff, endOff, new ServiceContext());
 			List<Document> datas = (List<Document>) jsonData.get(ConstantUtils.DATA);
-			List<GetDossierData> dossierData = new ArrayList<>();
-			int total = jsonData.getInt(ConstantUtils.TOTAL);
+//			List<GetDossierData> dossierData = new ArrayList<>();
+//			int total = jsonData.getInt(ConstantUtils.TOTAL);
 			Map<String, Map<String, List<Document>>> mapResults = new HashMap<String, Map<String,List<Document>>>();
 			Map<String, String> domains = new HashMap<String, String>();
 			Map<String, String> services = new HashMap<String, String>();
@@ -2049,8 +2049,8 @@ public class OpencpsStatisticRestApplication extends Application {
 			
 			JSONObject jsonData = actions.getDossiers(-1, companyId, groupId, params, sorts, startOff, endOff, new ServiceContext());
 			List<Document> datas = (List<Document>) jsonData.get(ConstantUtils.DATA);
-			List<GetDossierData> dossierData = new ArrayList<>();
-			int total = jsonData.getInt(ConstantUtils.TOTAL);
+//			List<GetDossierData> dossierData = new ArrayList<>();
+//			int total = jsonData.getInt(ConstantUtils.TOTAL);
 			Map<String, Map<String, List<Document>>> mapResults = new HashMap<String, Map<String,List<Document>>>();
 			Map<String, String> govs = new HashMap<String, String>();
 			Map<String, String> services = new HashMap<String, String>();

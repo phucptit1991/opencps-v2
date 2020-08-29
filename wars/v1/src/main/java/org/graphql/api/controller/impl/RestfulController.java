@@ -287,8 +287,8 @@ public class RestfulController {
 		long checkUserId = -1;
 		String emailAddress = StringPool.BLANK;
 		String loginMax = PropsUtil.get("opencps.user.login.max");
-		String secretKey = PropsUtil.get("opencps.jwt.secret");
-		String SECRET = Validator.isNotNull(secretKey) ? secretKey : "secret";
+//		String secretKey = PropsUtil.get("opencps.jwt.secret");
+		//String SECRET = Validator.isNotNull(secretKey) ? secretKey : "secret";
 		//Custom login
 		boolean syncUserLGSP = Validator.isNotNull(PropsUtil.get("opencps.register.lgsp"))
 				? GetterUtil.getBoolean(PropsUtil.get("opencps.register.lgsp")) : false;
@@ -447,6 +447,7 @@ public class RestfulController {
 										userId = AuthenticatedSessionManagerUtil.getAuthenticatedUserId(request, email, passKey,
 												CompanyConstants.AUTH_TYPE_EA);
 									} catch (PortalException e) {
+										_log.debug(e);
 										userId = AuthenticatedSessionManagerUtil.getAuthenticatedUserId(request, email, password,
 												CompanyConstants.AUTH_TYPE_EA);
 										//Update applicant
@@ -468,12 +469,12 @@ public class RestfulController {
 //											}
 //										}
 									if (userId > 0 && userId != 20103) {
-										checkUserId = userId;
+										//checkUserId = userId;
 										//Remember me false
 										AuthenticatedSessionManagerUtil.login(request, response, email, passKey, false,
 												CompanyConstants.AUTH_TYPE_EA);
 
-										User user = UserLocalServiceUtil.fetchUser(userId);
+										//User user = UserLocalServiceUtil.fetchUser(userId);
 //											Algorithm algorithm = Algorithm.HMAC256(SECRET);
 //											String token = JWT.create()
 //													.withClaim("screenName", Validator.isNotNull(user) ? user.getScreenName() : StringPool.BLANK)
@@ -551,11 +552,12 @@ public class RestfulController {
 										userId = AuthenticatedSessionManagerUtil.getAuthenticatedUserId(request, email, passKey,
 												CompanyConstants.AUTH_TYPE_EA);
 									} catch (PortalException e) {
+										_log.debug(e);
 										userId = AuthenticatedSessionManagerUtil.getAuthenticatedUserId(request, email, password,
 												CompanyConstants.AUTH_TYPE_EA);
 									}
 									if (userId > 0 && userId != 20103) {
-										checkUserId = userId;
+//										checkUserId = userId;
 										//Remember me false
 										AuthenticatedSessionManagerUtil.login(request, response, email, passKey, false,
 												CompanyConstants.AUTH_TYPE_EA);
@@ -915,6 +917,7 @@ public class RestfulController {
 		serviceContext.setUserId(userId);
 		serviceContext.setCompanyId(companyId);
 		serviceContext.setScopeGroupId(groupId);
+		_log.info("TABLE LOG :" + code);
 		
 		try {
 			if (multipartFile != null) {
@@ -984,6 +987,7 @@ public class RestfulController {
 
 						openCPSDeliverable.setFileEntryId(fileAttach.getFileEntryId());
 						//
+						_log.info("LOG Update Deliverable :" + fileAttach.getFileEntryId());
 						String formData = openCPSDeliverable.getFormData();
 						if (Validator.isNotNull(formData)) {
 							JSONObject jsonData = JSONFactoryUtil.createJSONObject(formData);
@@ -992,6 +996,7 @@ public class RestfulController {
 						}
 
 						DeliverableLocalServiceUtil.updateDeliverable(openCPSDeliverable);
+						_log.info("LOG Update Deliverable :" + openCPSDeliverable.getFileEntryId());
 
 					}
 

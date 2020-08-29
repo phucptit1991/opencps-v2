@@ -1480,8 +1480,8 @@ public class DossierLocalServiceImpl extends DossierLocalServiceBaseImpl {
 		// set receivedDate
 		dossier.setReceiveDate(now);
 
-		dossier.setDossierNote(option.getInstructionNote());
-		dossier.setSubmissionNote(option.getSubmissionNote());
+		dossier.setDossierNote(option != null ? option.getInstructionNote() : StringPool.BLANK);
+		dossier.setSubmissionNote(option != null ? option.getSubmissionNote() : StringPool.BLANK);
 		dossier.setApplicantNote(applicantNote);
 		dossier.setBriefNote(briefNote);
 		// dossier.setDossierNo(dossierNo);
@@ -1545,7 +1545,7 @@ public class DossierLocalServiceImpl extends DossierLocalServiceBaseImpl {
 
 		String dossierRef = DossierNumberGenerator.generateDossierNumber(
 				groupId, dossier.getCompanyId(), dossierId,
-				option.getProcessOptionId(),
+				option != null ? option.getProcessOptionId() : 0,
 				serviceProcess != null
 						? serviceProcess.getDossierNoPattern() : StringPool.BLANK,
 				params);
@@ -2585,11 +2585,8 @@ public class DossierLocalServiceImpl extends DossierLocalServiceBaseImpl {
 
 	public Dossier getByRef(long groupId, String refId) {
 
-		try {
-			return dossierPersistence.findByG_REF(groupId, refId);
-		} catch (NoSuchDossierException e) {
-			return null;
-		}
+		return dossierPersistence.fetchByG_REF(groupId, refId);
+
 	}
 
 	@Indexable(type = IndexableType.DELETE)
@@ -3525,9 +3522,9 @@ public class DossierLocalServiceImpl extends DossierLocalServiceBaseImpl {
 			}
 		}
 
-		System.out.println("====online 3511==" + online);
-		_log.info("====online 3511==" + online);
-		_log.debug("====online 3511==" + online);
+//		System.out.println("====online 3511==" + online);
+//		_log.info("====online 3511==" + online);
+//		_log.debug("====online 3511==" + online);
 		if (Validator.isNotNull(online)) {
 			MultiMatchQuery query = new MultiMatchQuery(String.valueOf(online));
 			query.addField(DossierTerm.ONLINE);
@@ -6332,11 +6329,7 @@ public class DossierLocalServiceImpl extends DossierLocalServiceBaseImpl {
 
 	public Dossier getByDossierNo(long groupId, String dossierNo) {
 
-		try {
-			return dossierPersistence.findByG_DN(groupId, dossierNo);
-		} catch (NoSuchDossierException e) {
-			return null;
-		}
+		return dossierPersistence.fetchByG_DN(groupId, dossierNo);
 	}
 
 	// super_admin Generators
