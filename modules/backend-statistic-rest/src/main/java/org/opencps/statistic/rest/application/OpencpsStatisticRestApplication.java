@@ -12,6 +12,7 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.Sort;
@@ -22,8 +23,8 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.PropsUtil;
-import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.WebKeys;
 
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -40,6 +41,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.activation.DataHandler;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.BeanParam;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
@@ -146,6 +148,8 @@ import org.opencps.statistic.rest.util.StatisticDataUtil;
 import org.opencps.statistic.service.OpencpsDossierStatisticLocalServiceUtil;
 import org.opencps.statistic.service.OpencpsDossierStatisticManualLocalServiceUtil;
 import org.opencps.statistic.service.OpencpsVotingStatisticLocalServiceUtil;
+import org.opencps.usermgt.model.Employee;
+import org.opencps.usermgt.service.EmployeeLocalServiceUtil;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.jaxrs.whiteboard.JaxrsWhiteboardConstants;
 import org.slf4j.Logger;
@@ -1082,13 +1086,13 @@ public class OpencpsStatisticRestApplication extends Application {
 				}						
 			}
 		}
-//		ServiceDomainResponse serviceDomainResponse = null;
-//		if (OpenCPSConfigUtil.isStatisticMultipleServerEnable()) {
-//			serviceDomainResponse = callServiceDomainService.callRestService(sdPayload);
-//		}
-//		else {
-//			serviceDomainResponse = StatisticDataUtil.getLocalServiceDomain(sdPayload);
-//		}
+		ServiceDomainResponse serviceDomainResponse = null;
+		if (OpenCPSConfigUtil.isStatisticMultipleServerEnable()) {
+			serviceDomainResponse = callServiceDomainService.callRestService(sdPayload);
+		}
+		else {
+			serviceDomainResponse = StatisticDataUtil.getLocalServiceDomain(sdPayload);
+		}
 		// Get dossier to groupId
 		GetDossierRequest payload = new GetDossierRequest();
 		payload.setGroupId(groupId);
@@ -1656,8 +1660,8 @@ public class OpencpsStatisticRestApplication extends Application {
 			long companyId = company.getCompanyId(); 
 			JSONObject jsonData = actions.getDossiers(-1, companyId, groupId, params, sorts, query.getStart(), query.getEnd(), new ServiceContext());
 			List<Document> datas = (List<Document>) jsonData.get(ConstantUtils.DATA);
-//			List<GetDossierData> dossierData = new ArrayList<>();
-//			int total = jsonData.getInt(ConstantUtils.TOTAL);
+			List<GetDossierData> dossierData = new ArrayList<>();
+			int total = jsonData.getInt(ConstantUtils.TOTAL);
 			Map<String, Map<String, List<Document>>> mapResults = new HashMap<String, Map<String,List<Document>>>();
 			Map<String, String> domains = new HashMap<String, String>();
 			Map<String, String> services = new HashMap<String, String>();
@@ -1853,8 +1857,8 @@ public class OpencpsStatisticRestApplication extends Application {
 			
 			JSONObject jsonData = actions.getDossiers(-1, companyId, groupId, params, sorts, startOff, endOff, new ServiceContext());
 			List<Document> datas = (List<Document>) jsonData.get(ConstantUtils.DATA);
-//			List<GetDossierData> dossierData = new ArrayList<>();
-//			int total = jsonData.getInt(ConstantUtils.TOTAL);
+			List<GetDossierData> dossierData = new ArrayList<>();
+			int total = jsonData.getInt(ConstantUtils.TOTAL);
 			Map<String, Map<String, List<Document>>> mapResults = new HashMap<String, Map<String,List<Document>>>();
 			Map<String, String> domains = new HashMap<String, String>();
 			Map<String, String> services = new HashMap<String, String>();
@@ -2049,8 +2053,8 @@ public class OpencpsStatisticRestApplication extends Application {
 			
 			JSONObject jsonData = actions.getDossiers(-1, companyId, groupId, params, sorts, startOff, endOff, new ServiceContext());
 			List<Document> datas = (List<Document>) jsonData.get(ConstantUtils.DATA);
-//			List<GetDossierData> dossierData = new ArrayList<>();
-//			int total = jsonData.getInt(ConstantUtils.TOTAL);
+			List<GetDossierData> dossierData = new ArrayList<>();
+			int total = jsonData.getInt(ConstantUtils.TOTAL);
 			Map<String, Map<String, List<Document>>> mapResults = new HashMap<String, Map<String,List<Document>>>();
 			Map<String, String> govs = new HashMap<String, String>();
 			Map<String, String> services = new HashMap<String, String>();
@@ -2353,17 +2357,17 @@ public class OpencpsStatisticRestApplication extends Application {
 	@GET
 	@Path("/bqp")
 	public Response searchDossierStatisticForBQP(@HeaderParam("groupId") long groupId,
-			@BeanParam DossierSearchModel query, @Context Request requestCC) {
+			@BeanParam DossierSearchModel query, @Context Request requestCC, @Context HttpServletRequest request) {
 
 		CacheControl cc = new CacheControl();
 		cc.setMaxAge(60);
 		cc.setPrivate(true);
-
+		
+		String govAgencyCode = null;
 		int start = query.getStart();
 		int end = query.getEnd();
 		int month = query.getMonth();
 		int year = query.getYear();
-		String govAgencyCode = query.getAgency();
 		String domain = query.getDomain();
 		String system = query.getSystem();
 		if (Validator.isNull(system)) {
@@ -2389,6 +2393,21 @@ public class OpencpsStatisticRestApplication extends Application {
 		
 		String collectionCode = query.getCollectionCode();
 		String parentCode = query.getParentAgency();
+		
+		String remoteUser = request.getRemoteUser(); 
+		if (remoteUser != null) {
+			long userId = GetterUtil.getLong(remoteUser);
+			Employee employee = EmployeeLocalServiceUtil.fetchByF_mappingUserId(groupId, userId);
+			if (employee != null) {
+				String scope = employee.getScope();
+				if (scope!= null && scope.split(",").length > 1) {
+					String[] govAgency = scope.split(",");
+					scope = govAgency[0];
+				}
+				govAgencyCode = scope;
+			}			
+		}
+
 
 		if (!calculate) {
 			String status = query.getStatus();
@@ -2573,8 +2592,8 @@ public class OpencpsStatisticRestApplication extends Application {
 				if (Validator.isNotNull(collectionCode)) {
 					DictCollection dc = DictCollectionLocalServiceUtil.fetchByF_dictCollectionCode(collectionCode,
 							groupId);
-					// check govAgncycode is parentCode or not
-					if (!StringUtils.isEmpty(govAgencyCode)) {
+					// check govAgencycode is parentCode or not
+					if (dc != null && !StringUtils.isEmpty(dossierStatisticRequest.getGovAgencyCode())) {
 						DictItem dt = DictItemLocalServiceUtil.fetchByF_dictItemCode(govAgencyCode,
 								dc.getDictCollectionId(), groupId);
 						if (dt != null) {
@@ -2633,7 +2652,7 @@ public class OpencpsStatisticRestApplication extends Application {
 							}
 						}
 
-					}else {
+					}else if (!StringUtils.isEmpty(dossierStatisticRequest.getGovAgencyCode())){
 						statisticResponse = dossierStatisticFinderService
 								.finderDossierStatisticSystem(dossierStatisticRequest);
 						data = createRecordTotal(statisticResponse, groupId, month, year, govAgencyCode, domain, system);
@@ -2781,5 +2800,5 @@ public class OpencpsStatisticRestApplication extends Application {
 		}
 		return data;
 	}
-
+	
 }
