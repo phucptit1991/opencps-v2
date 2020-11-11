@@ -8929,14 +8929,16 @@ public class DossierManagementImpl implements DossierManagement {
 
 	private void getInterDossierFromOriginDossier(Dossier dossier, List<Dossier> listDossier) {
 		// Ds ho so trung gian va lien thong tu ho so goc
-		List<Dossier> aList = DossierLocalServiceUtil.fetchByORIGIN_NO(dossier.getDossierNo());
-		// Lay ho so lien thong la ho so co originDossierId = 0
-		Dossier newDossier = null;
-		if (aList.size() > 0) {
-			newDossier = aList.stream().filter(x -> x.getOriginDossierId()== 0)
-					.findAny().orElse(null);
-			listDossier.add(newDossier);
-			getInterDossierFromOriginDossier(newDossier, listDossier);
+		if (!StringUtils.isEmpty(dossier.getDossierNo())) {
+			List<Dossier> aList = DossierLocalServiceUtil.fetchByORIGIN_NO(dossier.getDossierNo());
+			// Lay ho so lien thong la ho so co originDossierId = 0
+			Dossier newDossier = null;
+			if (aList.size() > 0) {
+				newDossier = aList.stream().filter(x -> x.getOriginDossierId()== 0)
+						.findAny().orElse(null);
+				listDossier.add(newDossier);
+				getInterDossierFromOriginDossier(newDossier, listDossier);
+			}
 		}
 	}
 
