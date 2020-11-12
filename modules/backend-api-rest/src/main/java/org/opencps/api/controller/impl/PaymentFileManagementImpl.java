@@ -1370,7 +1370,7 @@ public class PaymentFileManagementImpl implements PaymentFileManagement {
 		try {
 
 			if (!auth.isAuth(serviceContext)) {
-				throw new UnauthenticationException();
+				//throw new UnauthenticationException();
 			}
 
 			PaymentFileActions action = new PaymentFileActionsImpl();
